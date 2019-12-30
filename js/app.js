@@ -138,6 +138,8 @@ if (!CDEX) {
             return displayBlob(blob);
         }else if(attachment.contentType === "application/hl7-v3+xml"){
             return "<textarea rows='20' cols='40' style='border:none;'>" + atob(attachment.data) + "</textarea>";
+        }else if(attachment.contentType === "text/xml"){
+            return "<textarea rows='20' cols='40' style='border:none;'>" + atob(attachment.data) + "</textarea>";
         }else if(attachment.contentType === "application/fhir+xml"){
             let bundle = JSON.parse(atob(attachment.data));
             let result = "";
@@ -272,6 +274,7 @@ if (!CDEX) {
         let payload = [];
 
         communicationRequest.id = CDEX.getGUID();
+        communicationRequest.subject.reference = "Patient/" + CDEX.patient.id;
         communicationRequest.contained[0].id = CDEX.getGUID();
         communicationRequest.contained[0].identifier[0].system = CDEX.payerEndpoint.url;
         communicationRequest.contained[0].identifier[0].value = CDEX.payerEndpoint.name;
@@ -394,6 +397,14 @@ if (!CDEX) {
     };
 
     CDEX.initialize = (client) => {
+        $.ajaxSetup({
+            converters: {
+                "text json" : function(response) {
+                    return (response == "") ? null : JSON.parse(response);
+                },
+            },
+        });
+
         CDEX.loadConfig();
         CDEX.loadData(client);
     };
@@ -419,14 +430,16 @@ if (!CDEX) {
             type: 'PUT',
             url: CDEX.providerEndpoint.url + CDEX.submitEndpoint + CDEX.operationPayload.id,
             data: JSON.stringify(CDEX.operationPayload),
-            contentType: "application/fhir+json"
+            contentType: "application/fhir+json",
+            headers: { authorization: 'Bearer ' + CDEX.client.tokenResponse.access_token }
         };
 
         let configPayer = {
             type: 'PUT',
             url: CDEX.payerEndpoint.url + CDEX.submitEndpoint + CDEX.operationPayload.id,
             data: JSON.stringify(CDEX.operationPayload),
-            contentType: "application/fhir+json"
+            contentType: "application/fhir+json",
+            headers: { authorization: 'Bearer ' + CDEX.client.tokenResponse.access_token }
         };
 
         promiseProvider = $.ajax(configProvider);
@@ -436,12 +449,20 @@ if (!CDEX) {
             $('#request-id').append("<p><strong>Request ID:</strong> " + CDEX.operationPayload.id + "</p>");
             CDEX.displayConfirmScreen();
 
-            let promisePayer;
-            promisePayer = $.ajax(configPayer);
-            console.log(CDEX.operationPayload);
-            promisePayer.then(() => {
-            }, () => CDEX.displayErrorScreen("Communication request submission failed", "Please check the endpoint configuration <br> You can close this window now"));
-        }, () => CDEX.displayErrorScreen("Communication request submission failed", "Please check the submit endpoint configuration <br> You can close this window now"));
+            // let promisePayer;
+            // promisePayer = $.ajax(configPayer);
+            // console.log(CDEX.operationPayload);
+            // promisePayer.then(() => {
+            // },
+            //     error => {
+            //         console.log('Error creating: ', error);
+            //         CDEX.displayErrorScreen("Communication request submission failed", "Please check the endpoint configuration <br> You can close this window now")
+            //     });
+        },
+            (error, args) => {
+                console.log('Error creating: ', error, args);
+                CDEX.displayErrorScreen("Communication request submission failed", "Please check the submit endpoint configuration <br> You can close this window now")
+            });
     };
 
     $('#btn-create').click(function() {
@@ -455,6 +476,7 @@ if (!CDEX) {
     $('#btn-review').click(CDEX.displayReviewScreen);
     $('#btn-start').click(CDEX.displayCommReqScreen);
     $('#btn-back').click(CDEX.displayCommReqScreen);
+    $('#btn-back-from-confirm').click(CDEX.displayCommReqScreen);
     $('#btn-edit').click(CDEX.displayDataRequestScreen);
     $('#btn-submit').click(CDEX.reconcile);
     $('#btn-configuration').click(CDEX.displayConfigScreen);

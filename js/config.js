@@ -6,25 +6,45 @@ if (!CDEX) {
 (function () {
 
   CDEX.clientSettings = {
-    "client_id": "bed3bfd0-17d1-473f-90ac-c006fec5e9c9",
-    "scope"    : "patient/*.* openid profile"
+      "server": "http://localhost:9090/4_0_0",
+      "selectedPatientID": "5dfaeda78bbe5f0007f163db",
+      "client": {
+          // "client_id": "bed3bfd0-17d1-473f-90ac-c006fec5e9c9",
+          "client_id": "dh-oauth-demo-client",
+          "secret": 'dh-oauth-demo-client-secret',
+          "scope": "patient/*.* CommunicationRequest/*.* openid profile"
+      },
+      // "fake_token_response": {
+      //     "patient": "5dfaeda78bbe5f0007f163db"
+      // }
   };
 
   CDEX.submitEndpoint = "/CommunicationRequest/";
 
-  CDEX.providerEndpoints = [{
-      "name": "HSPC CDex Provider (Open)",
+  CDEX.providerEndpoints = [
+  //     {
+  //     "name": "HSPC CDex Provider (Open)",
+  //     "type": "open",
+  //     "url": "https://api.logicahealth.org/DaVinciCDexProvider/open"
+  // },
+      {
+      "name": "DH",
       "type": "open",
-      "url": "https://api.logicahealth.org/DaVinciCDexProvider/open"
+      "url": "http://localhost:9090/4_0_0"
   }
   ];
 
   //Change URL and Name if you want to change the destination of returned Communication to this CommunicationRequest
-  CDEX.payerEndpoint = {
-      "name": "HSPC CDex Payer (Open)",
-      "type": "open",
-      "url": "https://api.logicahealth.org/DaVinciCDexPayer/open"
-  };
+  // CDEX.payerEndpoint = {
+  //     "name": "HSPC CDex Payer (Open)",
+  //     "type": "open",
+  //     "url": "https://api.logicahealth.org/DaVinciCDexPayer/open"
+  // };
+    CDEX.payerEndpoint = {
+        "name": "DH",
+        "type": "open",
+        "url": "http://localhost:9090/4_0_0"
+    };
 
   // default configuration
   CDEX.configSetting = 0; // HSPC Provider Demo (Open)
